@@ -109,7 +109,6 @@ class App extends React.Component<AppProps, AppState> {
                 <video
                     ref={this.video}
                     controls
-                    muted
                     height="480"
                     src={this.props.videoUrl}
                     onPlay={() => this.updateVideoPlayer()}
