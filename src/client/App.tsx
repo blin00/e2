@@ -6,6 +6,7 @@ import { PlayerState } from '../types';
 
 interface AppProps {
     videoUrl: string,
+    skew: number,
 }
 interface AppState {
     connected: boolean,
@@ -62,12 +63,12 @@ class App extends React.Component<AppProps, AppState> {
     }
 
     pushState = () => {
-        let videoElement = this.video.current;
+        const videoElement = this.video.current;
         if (videoElement == null) {
             console.log('null video player');
             return;
         }
-        let newState = {
+        const newState = {
             time: this.ts.now(),
             seek: videoElement.currentTime,
             play: !videoElement.paused,
@@ -76,27 +77,41 @@ class App extends React.Component<AppProps, AppState> {
         this.lastReceivedState = newState;
     }
     updateVideoPlayer = () => {
-        let videoElement = this.video.current;
+        const videoElement = this.video.current;
         if (videoElement == null) {
             console.log('null video player');
             return;
         }
         if (this.state.autopush) {
+            videoElement.playbackRate = 1;
             this.pushState();
             return;
         }
-        if (!this.state.sync) return;
+        if (!this.state.sync) {
+            videoElement.playbackRate = 1;
+            return;
+        }
         if (this.lastReceivedState == null) return;
         if (this.lastReceivedState.play) {
             // attempt to play
             videoElement.play();
-            let currentTime = videoElement.currentTime;
-            let correctedTime = (this.ts.now() - this.lastReceivedState.time) / 1000 + this.lastReceivedState.seek;
+            const currentTime = videoElement.currentTime;
+            const correctedTime = (this.ts.now() - this.lastReceivedState.time) / 1000 + this.lastReceivedState.seek;
             console.log(`time delta: ${(this.ts.now() - Date.now())}`);
-            console.log(`video delta: ${(correctedTime - currentTime) * 1000}`);
-            if (Math.abs(currentTime - correctedTime) > 2) {
-                console.log('  correcting');
+            console.log(`video delta: ${(currentTime - correctedTime) * 1000}`);
+            const absDelta = Math.abs(currentTime - correctedTime);
+            if (absDelta > 2) {
+                console.log('  correcting with jump');
                 videoElement.currentTime = correctedTime;
+            } else if (absDelta > 1) {
+                console.log('  correcting with skew');
+                if (correctedTime > currentTime) {
+                    videoElement.playbackRate = this.props.skew;
+                } else {
+                    videoElement.playbackRate = 1 / this.props.skew;
+                }
+            } else {
+                videoElement.playbackRate = 1;
             }
         } else {
             videoElement.pause();
