@@ -11,6 +11,7 @@ interface AppState {
     connected: boolean,
     sync: boolean,
     autopush: boolean,
+    showpush: boolean,
 }
 
 class App extends React.Component<AppProps, AppState> {
@@ -25,6 +26,7 @@ class App extends React.Component<AppProps, AppState> {
             connected: false,
             sync: false,
             autopush: false,
+            showpush: false,
         };
         this.video = React.createRef();
         this.lastReceivedState = null;
@@ -115,23 +117,28 @@ class App extends React.Component<AppProps, AppState> {
                     onTimeUpdate={() => this.updateVideoPlayer()}
                 />
             </div>
-            <div>
+            <div style={{margin: 5}}>
                 <div>
                     <input type="checkbox" checked={this.state.sync} onChange={(event) => {
                         this.setState({sync: event.target.checked}, this.updateVideoPlayer);
                     }} />
-                    <label>Sync Playback</label>
-                </div>
-                <hr />
-                <div>
-                    <button onClick={() => this.pushState()}>Push</button>
+                    <label>Sync playback</label>
                 </div>
                 <div>
-                    <input type="checkbox" checked={this.state.autopush} onChange={(event) => {
-                        this.setState({autopush: event.target.checked});
+                    <input type="checkbox" checked={this.state.showpush} onChange={(event) => {
+                        this.setState({showpush: event.target.checked});
                     }} />
-                    <label>Autopush</label>
+                    <label>Show options for daily push oncall...</label>
                 </div>
+                {this.state.showpush &&
+                    <div style={{marginTop: 5}}>
+                        <button onClick={() => this.pushState()}>Push</button>
+                        <input type="checkbox" checked={this.state.autopush} onChange={(event) => {
+                            this.setState({autopush: event.target.checked});
+                        }} />
+                        <label>Autopush</label>
+                    </div>
+                }
             </div>
         </>;
     }
