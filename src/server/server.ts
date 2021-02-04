@@ -14,7 +14,7 @@ const io = new socket_io.Server(server, {});
 let globalState: PlayerState | null = null;
 
 io.on('connection', (socket: socket_io.Socket) => {
-    console.log(`got client: ${socket.id}`);
+    console.log(`client connect: ${socket.id}`);
     socket.on('pushState', (newState: PlayerState) => {
         console.log('updating state: %j', newState);
         socket.broadcast.emit('state', newState);
@@ -25,6 +25,9 @@ io.on('connection', (socket: socket_io.Socket) => {
             id: data?.id,
             result: Date.now(),
         });
+    });
+    socket.on('disconnect', (reason: string) => {
+        console.log(`client disconnect: ${socket.id}, ${reason}`);
     });
     socket.emit('state', globalState);
 });
