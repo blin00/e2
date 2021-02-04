@@ -12,9 +12,12 @@ const server = http.createServer(app);
 const io = new socket_io.Server(server, {});
 
 let globalState: PlayerState | null = null;
+let numClients: number = 0;
 
 io.on('connection', (socket: socket_io.Socket) => {
     console.log(`client connect: ${socket.id}`);
+    numClients++;
+    console.log(`clients: ${numClients}`);
     socket.on('pushState', (newState: PlayerState) => {
         console.log('updating state: %j', newState);
         socket.broadcast.emit('state', newState);
@@ -28,9 +31,10 @@ io.on('connection', (socket: socket_io.Socket) => {
     });
     socket.on('disconnect', (reason: string) => {
         console.log(`client disconnect: ${socket.id}, ${reason}`);
+        numClients--;
+        console.log(`clients: ${numClients}`);
     });
     socket.emit('state', globalState);
 });
 
 server.listen(port, () => console.log(`server listening on port: ${port}`));
-
